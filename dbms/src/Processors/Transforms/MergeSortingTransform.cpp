@@ -40,6 +40,8 @@ public:
         stream->writePrefix();
     }
 
+    String getName() const override { return "SinkToNativeStream"; }
+
     void consume(Chunk chunk) override
     {
         stream->write(getInputPort().getHeader().cloneWithColumns(chunk.detachColumns()));
@@ -74,6 +76,8 @@ public:
     {
         block_in->readPrefix();
     }
+
+    String getName() const override { return "SourceFromNativeStream"; }
 
     Chunk generate() override
     {
@@ -134,6 +138,8 @@ class MergeSorterSource : public ISource
 public:
     MergeSorterSource(Block header, Chunks chunks, SortDescription & description, size_t max_merged_block_size, UInt64 limit)
         : ISource(std::move(header)), merge_sorter(std::move(chunks), description, max_merged_block_size, limit) {}
+
+    String getName() const override { return "MergeSorterSource"; }
 
 protected:
     Chunk generate() override { return merge_sorter.read(); }
