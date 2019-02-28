@@ -166,7 +166,7 @@ try
         connect(limit2->getOutputPort(), *(it++));
         connect(limit3->getOutputPort(), *(it++));
 
-        connect(merge->getOutputPort(), limit_fin->getInputPort());
+        connect(merge->getOutputs().front(), limit_fin->getInputPort());
         connect(limit_fin->getOutputPort(), sink->getPort());
 
         std::vector<ProcessorPtr> processors = {source1, source2, source3,
