@@ -179,7 +179,7 @@ try
             UInt64 source_block_size = 1024;
             UInt64 blocks_count = 10;
             size_t max_merged_block_size = 1024;
-            UInt64 limit = 0;
+            UInt64 limit = 2048;
             size_t max_bytes_before_remerge = sizeof(UInt64) * source_block_size * 4;
             size_t max_bytes_before_external_sort = 10000000;
             std::string msg = pool ? "multiple threads" : "single thread";
