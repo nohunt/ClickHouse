@@ -129,7 +129,7 @@ try
         SortDescription description = {{0, 1, 1}};
         auto transform = std::make_shared<MergeSortingTransform>(
                 source->getPort().getHeader(), description,
-                max_merged_block_size, limit, max_bytes_before_remerge, max_bytes_before_external_sort);
+                max_merged_block_size, limit, max_bytes_before_remerge, max_bytes_before_external_sort, ".");
         auto sink = std::make_shared<PrintSink>("");
 
         connect(source->getPort(), transform->getInputs().front());
