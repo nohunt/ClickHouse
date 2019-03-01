@@ -52,6 +52,8 @@ public:
         if (stream)
         {
             stream->writeSuffix();
+            compressed_buf.next();
+            file_buf.next();
             LOG_INFO(log, "Done writing part of data into temporary file " + path);
         }
 
@@ -87,6 +89,7 @@ public:
         auto block = block_in->read();
         if (!block)
         {
+            block_in->readSuffix();
             block_in.reset();
             return {};
         }
