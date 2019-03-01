@@ -266,7 +266,7 @@ MergeSortingTransform::MergeSortingTransform(
     /// Remove constants from header and map old indexes to new.
     size_t num_columns = sample.columns();
     ColumnNumbers map(num_columns, num_columns);
-    const_columns_to_remove.assign(num_columns, 0);
+    const_columns_to_remove.assign(num_columns, true);
     for (size_t pos = 0; pos < num_columns; ++pos)
     {
         const auto & column = sample.getByPosition(pos);
@@ -274,7 +274,7 @@ MergeSortingTransform::MergeSortingTransform(
         {
             map[pos] = header_without_constants.columns();
             header_without_constants.insert(column);
-            const_columns_to_remove[pos] = true;
+            const_columns_to_remove[pos] = false;
         }
     }
 
