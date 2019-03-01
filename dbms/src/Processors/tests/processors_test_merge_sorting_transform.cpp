@@ -59,40 +59,37 @@ private:
     }
 };
 
-class PrintSink : public ISink
+class CheckSortedSink : public ISink
 {
 public:
     String getName() const override { return "Print"; }
 
-    PrintSink(String prefix)
-            : ISink(Block({ColumnWithTypeAndName{ ColumnUInt64::create(), std::make_shared<DataTypeUInt64>(), "number" }})),
-              prefix(std::move(prefix))
+    CheckSortedSink(x)
+            : ISink(Block({ColumnWithTypeAndName{ ColumnUInt64::create(), std::make_shared<DataTypeUInt64>(), "number" }}))
     {
     }
 
 private:
-    String prefix;
-    WriteBufferFromFileDescriptor out{STDOUT_FILENO};
     FormatSettings settings;
+    UInt64 current_number = 0;
 
     void consume(Chunk chunk) override
     {
         size_t rows = chunk.getNumRows();
-        size_t columns = chunk.getNumColumns();
 
+        UInt64 prev = current_number;
+        auto & col = chunk.getColumns().at(0);
         for (size_t row_num = 0; row_num < rows; ++row_num)
         {
-            writeString(prefix, out);
-            for (size_t column_num = 0; column_num < columns; ++column_num)
-            {
-                if (column_num != 0)
-                    writeChar('\t', out);
-                getPort().getHeader().getByPosition(column_num).type->serializeAsText(*chunk.getColumns()[column_num], row_num, out, settings);
-            }
-            writeChar('\n', out);
+            UInt64 val = col->getUInt(row_num);
+            if (val != current_number)
+                throw Exception("Invalid value. Expected " + toString(current_number) + ", got " + toString(val),
+                        ErrorCodes::LOGICAL_ERROR);
+
+            ++current_number;
         }
 
-        out.next();
+        std::cout << "CheckSortedSink: " << prev << " - " << current_number << std::endl;
     }
 };
 
@@ -130,7 +127,7 @@ try
         auto transform = std::make_shared<MergeSortingTransform>(
                 source->getPort().getHeader(), description,
                 max_merged_block_size, limit, max_bytes_before_remerge, max_bytes_before_external_sort, ".");
-        auto sink = std::make_shared<PrintSink>("");
+        auto sink = std::make_shared<CheckSortedSink>();
 
         connect(source->getPort(), transform->getInputs().front());
         connect(transform->getOutputs().front(), sink->getPort());
@@ -149,27 +146,49 @@ try
 
     for (auto pool : pools)
     {
-        Int64 time = 0;
+        {
+            UInt64 source_block_size = 100;
+            UInt64 blocks_count = 10;
+            size_t max_merged_block_size = 100;
+            UInt64 limit = 0;
+            size_t max_bytes_before_remerge = 10000000;
+            size_t max_bytes_before_external_sort = 10000000;
+            std::string msg = pool ? "multiple threads" : "single thread";
+            msg += ", 100 blocks per 100 numbers, no remerge and external sorts.";
 
-        UInt64 source_block_size = 10;
-        UInt64 blocks_count = 10;
-        size_t max_merged_block_size = 10;
-        UInt64 limit = 0;
-        size_t max_bytes_before_remerge = 10000000;
-        size_t max_bytes_before_external_sort = 10000000;
-        std::string msg = pool ? "multiple threads" : "single thread";
-        msg += ", 100 blocks per 100 numbers, no remerge and external sorts.";
+            Int64 time = measure<>::execution(execute_chain, msg,
+                                        source_block_size,
+                                        blocks_count,
+                                        max_merged_block_size,
+                                        limit,
+                                        max_bytes_before_remerge,
+                                        max_bytes_before_external_sort,
+                                        pool);
 
-        time =  measure<>::execution(execute_chain, msg,
-            source_block_size,
-            blocks_count,
-            max_merged_block_size,
-            limit,
-            max_bytes_before_remerge,
-            max_bytes_before_external_sort,
-            pool);
+            times[msg] = time;
+        }
 
-        times[msg] = time;
+        {
+            UInt64 source_block_size = 1024;
+            UInt64 blocks_count = 10;
+            size_t max_merged_block_size = 1024;
+            UInt64 limit = 0;
+            size_t max_bytes_before_remerge = sizeof(UInt64) * source_block_size * 4;
+            size_t max_bytes_before_external_sort = 10000000;
+            std::string msg = pool ? "multiple threads" : "single thread";
+            msg += ", 100 blocks per 100 numbers, with remerge, no external sorts.";
+
+            Int64 time = measure<>::execution(execute_chain, msg,
+                                              source_block_size,
+                                              blocks_count,
+                                              max_merged_block_size,
+                                              limit,
+                                              max_bytes_before_remerge,
+                                              max_bytes_before_external_sort,
+                                              pool);
+
+            times[msg] = time;
+        }
     }
 
     for (auto & item : times)
