@@ -126,6 +126,7 @@ try
         size_t max_bytes_before_external_sort,
         ThreadPool * pool)
     {
+        std::cerr << "------------------------\n";
         std::cerr << msg << "\n";
 
         auto source = std::make_shared<NumbersSource>(blocks_count, source_block_size, 100);
@@ -139,11 +140,11 @@ try
         connect(transform->getOutputs().front(), sink->getPort());
 
         std::vector<ProcessorPtr> processors = {source, transform, sink};
-        WriteBufferFromOStream out(std::cout);
-        printPipeline(processors, out);
-
         PipelineExecutor executor(processors, pool);
         executor.execute();
+
+        WriteBufferFromOStream out(std::cout);
+        printPipeline(executor.getProcessors(), out);
     };
 
     ThreadPool pool(4, 4, 10);
