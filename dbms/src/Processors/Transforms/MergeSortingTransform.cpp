@@ -384,7 +384,7 @@ IProcessor::Status MergeSortingTransform::prepareSerialize()
 
     if (!output.canPush())
     {
-        input.setNotNeeded();
+        // input.setNotNeeded();
         return Status::PortFull;
     }
 
