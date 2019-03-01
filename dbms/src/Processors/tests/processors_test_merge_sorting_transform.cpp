@@ -125,7 +125,7 @@ try
     {
         std::cerr << msg << "\n";
 
-        auto source = std::make_shared<NumbersSource>(blocks_count, source_block_size, 100000);
+        auto source = std::make_shared<NumbersSource>(blocks_count, source_block_size, 100);
         SortDescription description = {{0, 1, 1}};
         auto transform = std::make_shared<MergeSortingTransform>(
                 source->getPort().getHeader(), description,
@@ -151,9 +151,9 @@ try
     {
         Int64 time = 0;
 
-        UInt64 source_block_size = 100;
-        UInt64 blocks_count = 100;
-        size_t max_merged_block_size = 100;
+        UInt64 source_block_size = 10;
+        UInt64 blocks_count = 10;
+        size_t max_merged_block_size = 10;
         UInt64 limit = 0;
         size_t max_bytes_before_remerge = 10000000;
         size_t max_bytes_before_external_sort = 10000000;
