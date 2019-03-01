@@ -421,10 +421,10 @@ IProcessor::Status MergeSortingTransform::prepareGenerate()
 
     if (merge_sorter)
     {
-        if (!current_chunk)
+        if (!generated_chunk)
             return Status::Ready;
 
-        output.push(std::move(current_chunk));
+        output.push(std::move(generated_chunk));
         return Status::PortFull;
     }
     else
