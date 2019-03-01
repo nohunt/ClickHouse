@@ -19,6 +19,8 @@
 
 #include <iostream>
 #include <chrono>
+#include <Poco/ConsoleChannel.h>
+#include <Poco/AutoPtr.h>
 
 
 using namespace DB;
@@ -110,6 +112,10 @@ struct measure
 int main(int, char **)
 try
 {
+    Poco::AutoPtr<Poco::ConsoleChannel> channel = new Poco::ConsoleChannel(std::cerr);
+    Logger::root().setChannel(channel);
+    Logger::root().setLevel("trace");
+
     auto execute_chain = [](
         String msg,
         UInt64 source_block_size,
@@ -154,7 +160,8 @@ try
             size_t max_bytes_before_remerge = 10000000;
             size_t max_bytes_before_external_sort = 10000000;
             std::string msg = pool ? "multiple threads" : "single thread";
-            msg += ", 100 blocks per 100 numbers, no remerge and external sorts.";
+            msg += ", " + toString(blocks_count) + " blocks per " + toString(source_block_size) + " numbers" +
+                    ", no remerge and external sorts.";
 
             Int64 time = measure<>::execution(execute_chain, msg,
                                         source_block_size,
@@ -176,7 +183,8 @@ try
             size_t max_bytes_before_remerge = sizeof(UInt64) * source_block_size * 4;
             size_t max_bytes_before_external_sort = 10000000;
             std::string msg = pool ? "multiple threads" : "single thread";
-            msg += ", 100 blocks per 100 numbers, with remerge, no external sorts.";
+            msg += ", " + toString(blocks_count) + " blocks per " + toString(source_block_size) + " numbers" +
+                   ", with remerge, on external sorts.";
 
             Int64 time = measure<>::execution(execute_chain, msg,
                                               source_block_size,
