@@ -184,7 +184,30 @@ try
             size_t max_bytes_before_external_sort = 10000000;
             std::string msg = pool ? "multiple threads" : "single thread";
             msg += ", " + toString(blocks_count) + " blocks per " + toString(source_block_size) + " numbers" +
-                   ", with remerge, on external sorts.";
+                   ", with remerge, no external sorts.";
+
+            Int64 time = measure<>::execution(execute_chain, msg,
+                                              source_block_size,
+                                              blocks_count,
+                                              max_merged_block_size,
+                                              limit,
+                                              max_bytes_before_remerge,
+                                              max_bytes_before_external_sort,
+                                              pool);
+
+            times[msg] = time;
+        }
+
+        {
+            UInt64 source_block_size = 1024;
+            UInt64 blocks_count = 10;
+            size_t max_merged_block_size = 1024;
+            UInt64 limit = 0;
+            size_t max_bytes_before_remerge = 0;
+            size_t max_bytes_before_external_sort = sizeof(UInt64) * source_block_size * 4;
+            std::string msg = pool ? "multiple threads" : "single thread";
+            msg += ", " + toString(blocks_count) + " blocks per " + toString(source_block_size) + " numbers" +
+                   ", no remerge, with external sorts.";
 
             Int64 time = measure<>::execution(execute_chain, msg,
                                               source_block_size,
