@@ -64,7 +64,7 @@ class CheckSortedSink : public ISink
 public:
     String getName() const override { return "Print"; }
 
-    CheckSortedSink(x)
+    CheckSortedSink()
             : ISink(Block({ColumnWithTypeAndName{ ColumnUInt64::create(), std::make_shared<DataTypeUInt64>(), "number" }}))
     {
     }
