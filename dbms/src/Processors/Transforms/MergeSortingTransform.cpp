@@ -293,6 +293,8 @@ MergeSortingTransform::MergeSortingTransform(
     description.swap(description_without_constants);
 }
 
+MergeSortingTransform::~MergeSortingTransform() = default;
+
 IProcessor::Status MergeSortingTransform::prepare()
 {
     if (stage == Stage::Serialize)
