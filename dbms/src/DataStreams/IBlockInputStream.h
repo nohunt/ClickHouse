@@ -6,6 +6,7 @@
 #include <DataStreams/SizeLimits.h>
 #include <IO/Progress.h>
 #include <Interpreters/SettingsCommon.h>
+#include <Storages/TableStructureLockHolder.h>
 
 #include <atomic>
 #include <shared_mutex>
@@ -24,12 +25,9 @@ class IBlockInputStream;
 class ProcessListElement;
 class QuotaForIntervals;
 class QueryStatus;
-class TableStructureReadLock;
 
 using BlockInputStreamPtr = std::shared_ptr<IBlockInputStream>;
 using BlockInputStreams = std::vector<BlockInputStreamPtr>;
-using TableStructureReadLockPtr = std::shared_ptr<TableStructureReadLock>;
-using TableStructureReadLocks = std::vector<TableStructureReadLockPtr>;
 
 /** Callback to track the progress of the query.
   * Used in IBlockInputStream and Context.
@@ -117,7 +115,7 @@ public:
     size_t checkDepth(size_t max_depth) const { return checkDepthImpl(max_depth, max_depth); }
 
     /// Do not allow to change the table while the blocks stream is alive.
-    void addTableLock(const TableStructureReadLockPtr & lock) { table_locks.push_back(lock); }
+    void addTableLock(const TableStructureLockHolder & lock) { table_locks.push_back(lock); }
 
     /// Get information about execution speed.
     const BlockStreamProfileInfo & getProfileInfo() const { return info; }
@@ -268,7 +266,7 @@ protected:
     }
 
 private:
-    TableStructureReadLocks table_locks;
+    std::vector<TableStructureLockHolder> table_locks;
 
     bool enabled_extremes = false;
 
